@@ -16,12 +16,13 @@ It uses `xdotool` which is available for Linux and Mac OS.
 
 Usage:
 
-1. Open a new invoice in GnuCash and place the cursor in the first column of the entry table.
+1. Open a new invoice in GnuCash and place the cursor in the description column of the entry table.
 2. Fire the execute dialog by pressing Alt-F2 (on most desktops).
 3. Type `fie -n3 nuts`.
 4. See how the tool fills in the entry line.
 
 If there are multiple items matching "nuts" in the article database, you will be asked to select one.
+The option `-n3` is optional and means "fill in a quantity of 3".
 
 
 Create PDF tenders or invoices from GnuCash

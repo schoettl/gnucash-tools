@@ -19,8 +19,10 @@ EOF
 
 # Use environment variable:
 # (Currently, the CSV file must not contain a header line)
+readonly ENV_VAR_NAME=FIE_CSV_FILE
 readonly ARTICLE_DATABASE=$FIE_CSV_FILE
-readonly CSV_SEPARATOR=,
+readonly CSV_SEPARATOR=';'
+
 readonly PROGNAME=$(basename "$0")
 
 # $1: error message
@@ -70,8 +72,23 @@ typeInvoiceEntry() {
     IFS=$CSV_SEPARATOR read -r id description price rest <<< "$line"
 
     if [[ -z $DRY_RUN ]]; then
-        # xdotool
-        :
+
+        sleep 0.05
+        xdotool type "$id - $description"
+        xdotool key Tab
+        xdotool type "Auftrag"
+        xdotool key Tab
+        xdotool type "Erträge:Verkauf"
+        xdotool key Tab
+        xdotool type "$QUANTITY"
+        xdotool key Tab
+        xdotool type "$price"
+        xdotool key Tab
+        # xdotool type "kein rabatt"
+
+        # "Steuerbar" kann man blöderweise nicht per Tastatur ansteuern!
+        # Folglich kann man "Steuertabelle" auch nicht per Tastatur ansteuern,
+        # weil deaktiviert, solange nicht "Steuerbar".
     else
         xmessage "would fill in: $id, $description, $QUANTITY, $price"
     fi
@@ -82,7 +99,7 @@ main() {
 
     parseCommandLine "$@"
     [[ -e $ARTICLE_DATABASE ]] \
-        || exitWithError "error: article database '$ARTICLE_DATABASE' (a CSV file) does not exist. Please check the environment variable 'FIE_CSV_FILE'."
+        || exitWithError "error: article database '$ARTICLE_DATABASE' (a CSV file) does not exist. Please check the environment variable '$ENV_VAR_NAME'."
 
     declare searchResultFile
     searchResultFile=$(mktemp)
