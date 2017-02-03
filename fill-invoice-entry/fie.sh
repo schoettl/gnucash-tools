@@ -8,10 +8,12 @@ usage:
   $PROGNAME -h
 
 options:
-  -h
-      show this help message
   -n QUANTITY
       define the quantity for the invoice entry
+  -d
+      dry-run, do not type and fill in the entry table in GnuCash
+  -h
+      show this help message
 EOF
 }
 
@@ -38,12 +40,14 @@ xerrorAndExit() {
 # $*: command line arguments = "$@"
 parseCommandLine() {
     declare quantity
-    while getopts "hn:" OPTION; do
+    while getopts "hdn:" OPTION; do
          case $OPTION in
          n)
              quantity=$OPTARG
              [[ $quantity =~ ^[0-9]+$ ]] \
                  || exitWithError "error: QUANTITY must be a positive integer"
+             ;;
+         d)  declare -rg DRY_RUN=1
              ;;
          h)
              printUsage
@@ -64,8 +68,13 @@ typeInvoiceEntry() {
     declare line=$1
     declare id description price rest
     IFS=$CSV_SEPARATOR read -r id description price rest <<< "$line"
-    # xdotool
-    xmessage "typing $id, $description, $QUANTITY, $price"
+
+    if [[ -z $DRY_RUN ]]; then
+        # xdotool
+        :
+    else
+        xmessage "would fill in: $id, $description, $QUANTITY, $price"
+    fi
 }
 
 main() {
