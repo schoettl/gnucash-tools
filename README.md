@@ -9,16 +9,16 @@ Create invoices in GnuCash using an article database
 Filling in the entry lines for an invoice in GnuCash is a lot of typing.
 Actually this data should come from an article database.
 
-My solution searches for an article in a CSV file (the article database) and automatically fills in description, price, tax information, and more.
+My solution searches for an article in a CSV file (the article database) and automatically fills in description, quantity, price, tax information, and more.
 
 It's a Bash script which can be started with a launcher (e.g. Albert) or Ctrl-F2.
-It uses xdotool which is available for Linux and Mac OS.
+It uses `xdotool` which is available for Linux and Mac OS.
 
 Usage:
 
 1. Open a new invoice in GnuCash and place the cursor in the first column of the entry table.
-2. Fire the "execute" dialog by pressing Ctrl-F2 (on most desktops).
-3. Type `fie 3 nuts`.
+2. Fire the execute dialog by pressing Ctrl-F2 (on most desktops).
+3. Type `fie -n3 nuts`.
 4. See how the tool fills in the entry line.
 
 If there are multiple items matching "nuts" in the article database, you will be asked to select one.
