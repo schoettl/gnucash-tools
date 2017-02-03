@@ -111,8 +111,6 @@ main() {
         declare selectedLineNumber
         selectedLineNumber=$(awk 'NR>1&&!/^_/{print NR-1;exit}; ENDFILE{exit 1}' "$userSelectFile") \
             || xerrorAndExit "nothing selected"
-        echo $?
-        echo $selectedLineNumber
 
         declare line
         line=$(sed -n "$selectedLineNumber"p "$searchResultFile")
