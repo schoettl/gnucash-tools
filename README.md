@@ -27,6 +27,6 @@ If there are multiple items matching "nuts" in the article database, you will be
 Create PDF tenders or invoices from GnuCash
 -------------------------------------------
 
-Another tool I've written can automatically create PDF tenders or invoices from invoices in GnuCash and store them in the appropriate folder.
+Another tool I've written automatically creates PDF tenders or invoices from invoices in GnuCash and store them in the appropriate folder.
 It's not released yet because it's kind of ugly and uses SQLite, Python (csv2json), Ruby (mustache), Haskell (for calculation), Bash script, and LaTeX.
 If you're still interested please drop me an e-mail.
