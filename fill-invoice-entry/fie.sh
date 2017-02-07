@@ -12,13 +12,15 @@ options:
       define the quantity for the invoice entry
   -d
       dry-run, do not type and fill in the entry table in GnuCash
+  -k
+      switch X keyboard layout from 'de neo' to 'de' for typing
   -h
       show this help message
 EOF
 }
 
 # Use environment variable:
-# (Currently, the CSV file must not contain a header line)
+# The CSV file must contain a header line!
 readonly ENV_VAR_NAME=FIE_CSV_FILE
 readonly ARTICLE_DATABASE=$FIE_CSV_FILE
 readonly CSV_SEPARATOR=';'
@@ -42,7 +44,7 @@ xerrorAndExit() {
 # $*: command line arguments = "$@"
 parseCommandLine() {
     declare quantity
-    while getopts "hdn:" OPTION; do
+    while getopts "hdn:k" OPTION; do
          case $OPTION in
          n)
              quantity=$OPTARG
@@ -50,6 +52,8 @@ parseCommandLine() {
                  || exitWithError "error: QUANTITY must be a positive integer"
              ;;
          d)  declare -rg DRY_RUN=1
+             ;;
+         k)  declare -rg SWITCH_KEYBOARD_LAYOUT=1
              ;;
          h)
              printUsage
@@ -67,6 +71,9 @@ parseCommandLine() {
 
 # $1: a line from the article database
 typeInvoiceEntry() {
+    [[ -n $SWITCH_KEYBOARD_LAYOUT ]] \
+        && setxkbmap de
+
     declare line=$1
     declare id description price rest
     IFS=$CSV_SEPARATOR read -r id description price rest <<< "$line"
@@ -79,6 +86,7 @@ typeInvoiceEntry() {
         xdotool type "Auftrag"
         xdotool key Tab
         xdotool type "Erträge:Verkauf"
+        sleep 0.05
         xdotool key Tab
         xdotool type "$QUANTITY"
         xdotool key Tab
@@ -92,6 +100,9 @@ typeInvoiceEntry() {
     else
         xmessage "would fill in: $id, $description, $QUANTITY, $price"
     fi
+
+    [[ -n $SWITCH_KEYBOARD_LAYOUT ]] \
+        && setxkbmap de neo
 }
 
 main() {
@@ -126,16 +137,22 @@ main() {
         userSelectFile=$(mktemp)
         {
             echo "# Tick the line you want to select by changing the '_' to 'x'"
+            echo -n '# '
+            head -1 "$searchResultFile"
             # actually, the first character of the selected line must just be different from '_'
-            sed 's/^/_ /' "$searchResultFile"
+            tail -n+2 "$searchResultFile" | sed 's/^/_ /'
         } > "$userSelectFile"
 
+        # fzf for Mac OS?
         gvim --nofork "$userSelectFile"
         [[ -s "$userSelectFile" ]] \
             || xerrorAndExit "canceled by user"
+        # how to start fzf in a terminal?
+        # xterm -e fzf ...
+        # and how to get the result of fzf back?
 
         declare selectedLineNumber
-        selectedLineNumber=$(awk 'NR>1&&!/^_/{print NR-1;exit}; ENDFILE{exit 1}' "$userSelectFile") \
+        selectedLineNumber=$(awk 'NR>2&&!/^_/{print NR-1;exit}; ENDFILE{exit 1}' "$userSelectFile") \
             || xerrorAndExit "nothing selected"
 
         declare line
