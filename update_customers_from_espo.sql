@@ -3,14 +3,19 @@
 
 -- This script must be applied once, e.g. in Vim with :!mysql -uroot < %
 -- A cron job should call the created procedure periodically, e.g.
--- echo "call update_customers_from_espo_crm();" | mysql -u syncuser gnucash_db
+-- echo "call gnucash.update_customers_from_espocrm();" | /usr/bin/mysql -u espo_gc_sync gnucash_db
+
+
+-- Create user with minimal permissions:
+-- grant execute on procedure gnucash.update_customers_from_espocrm to espo_gc_sync@localhost;
+
 
 use gnucash;
 
-drop procedure update_customers_from_espo_crm;
+drop procedure update_customers_from_espocrm;
 
 delimiter $$
-create procedure update_customers_from_espo_crm()
+create procedure update_customers_from_espocrm()
 begin
   set @keyword = 'Kundennummer:';
   set @likeKeyword = concat('%', @keyword, '%');
