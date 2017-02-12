@@ -7,8 +7,6 @@
 
 use gnucash;
 
--- TODO make union of error and info messages? (the 2 select statements in the middle)
-
 drop procedure update_customers_from_espo_crm;
 
 delimiter $$
@@ -20,15 +18,26 @@ begin
   create temporary table temp as
     select
       id as espo_account_id,
+      name as espo_account_name,
       trim(substr(description, locate(@keyword, description) + length(@keyword), 7)) as gnucash_customer_id
     from espocrm.account
     where description like @likeKeyword;
 
-  -- customers with references from more than 1 account -> error
-  -- (how to get the account ids?)
-  select gnucash_customer_id, count(*) as number, group_concat(espo_account_id separator ', ') as accounts from temp group by gnucash_customer_id having number > 1;
-  -- accounts without customer id -> info
-  select id, name from espocrm.account where description not like @likeKeyword;
+  select -- customers with references from more than 1 account -> error
+      'error' as type,
+      concat(
+        count(*), ' EspoCRM accounts refer to the same GnuCash customer ',
+        gnucash_customer_id, ': ',
+        group_concat(espo_account_name separator ', '),
+        ' (', group_concat(espo_account_id separator ', '), ')'
+      ) as message
+    from temp group by gnucash_customer_id having count(*) > 1
+  union
+  select -- accounts without customer id -> info
+      'info' as type,
+      concat('EspoCRM account has no reference to a GnuCash customer: ',
+        name, ' (', id, ')') as message
+    from espocrm.account where description not like @likeKeyword;
 
   update customers a
     left join temp t            on a.id = t.gnucash_customer_id collate utf8_general_ci
