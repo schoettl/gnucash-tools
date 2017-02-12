@@ -31,3 +31,17 @@ Create PDF tenders or invoices from GnuCash
 Another tool I've written automatically creates PDF tenders or invoices from invoices in GnuCash and store them in the appropriate folder.
 It's not released yet because it's kind of ugly and uses SQLite, Python (csv2json), Ruby (mustache), Haskell (for calculation), Bash script, and LaTeX.
 If you're still interested please drop me an e-mail.
+
+Update GnuCash's customer table with data from EspoCRM
+------------------------------------------------------
+
+If you use EspoCRM and GnuCash with the same MySQL instance, you can periodically update GnuCash's customer data with data from EspoCRM.
+
+- Customer (=account) data is only managed in the CRM.
+- The GnuCash database gets automatically updated.
+
+The link between the customers in GnuCash and EspoCRM is a line in EspoCRM's account description field:
+
+```
+Kundennummer: <customer id from GnuCash>
+```
