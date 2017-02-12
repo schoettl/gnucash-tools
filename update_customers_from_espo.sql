@@ -7,16 +7,17 @@
 
 use gnucash;
 
--- TODO better remove all occurrences of "gnucash"? because name could be different
 -- TODO make union of error and info messages? (the 2 select statements in the middle)
 
+drop procedure update_customers_from_espo_crm;
+
 delimiter $$
-create procedure gnucash.update_customers_from_espo_crm()
+create procedure update_customers_from_espo_crm()
 begin
   set @keyword = 'Kundennummer:';
   set @likeKeyword = concat('%', @keyword, '%');
 
-  create temporary table gnucash.temp as
+  create temporary table temp as
     select
       id as espo_account_id,
       trim(substr(description, locate(@keyword, description) + length(@keyword), 7)) as gnucash_customer_id
@@ -25,12 +26,12 @@ begin
 
   -- customers with references from more than 1 account -> error
   -- (how to get the account ids?)
-  select gnucash_customer_id, count(*) as number, group_concat(espo_account_id separator ', ') as accounts from gnucash.temp group by gnucash_customer_id having number > 1;
+  select gnucash_customer_id, count(*) as number, group_concat(espo_account_id separator ', ') as accounts from temp group by gnucash_customer_id having number > 1;
   -- accounts without customer id -> info
   select id, name from espocrm.account where description not like @likeKeyword;
 
-  update gnucash.customers a
-    left join gnucash.temp t    on a.id = t.gnucash_customer_id collate utf8_general_ci
+  update customers a
+    left join temp t            on a.id = t.gnucash_customer_id collate utf8_general_ci
     left join espocrm.account b on b.id = t.espo_account_id     collate utf8_general_ci
     set
       a.addr_name  = b.name,
