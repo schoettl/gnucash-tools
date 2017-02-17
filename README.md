@@ -45,3 +45,45 @@ The link between the customers in GnuCash and EspoCRM is a line in EspoCRM's acc
 ```
 Kundennummer: <customer id from GnuCash>
 ```
+
+Bill an invoice and use HBCI online banking
+-------------------------------------------
+
+That's a real problem. It's not sensibly possible to use GnuCash with both invoices and online banking :(
+
+Discussions:
+
+- https://lists.gnucash.org/pipermail/gnucash-de/2005-October/003475.html
+- https://lists.gnucash.org/pipermail/gnucash-de/2005-November/003604.html
+- https://lists.gnucash.org/pipermail/gnucash-de/2005-November/003600.html
+
+Looking at the invoice table in MySQL (`desc invoices;`), it seems that GnuCash
+determines the "billed" state by looking into the `post_txn`, `post_lot`,
+`post_acc` fields.
+
+Where
+- txn probably stands for tax
+- lot = the bank account?
+- acc = "Verbindlichkeiten", "Forderungen"
+
+Would it work to set those fields with a script?
+
+```
+update invoices set
+  post_txn = <guid_of_the_tax_account>,
+  post_lot = <guid_of_the_lot_account>,
+  post_acc = <guid_of_the_tax_account>
+  where id = <invoice_id> and owner_type = <owner_type_lieferant_or_kunde>;
+```
+
+```
+select b.name, owner_type, billto_type, billto_guid, c.name txn, d.name lot, e.name acc from invoices
+  left join (
+        select guid, name from customers
+        union
+        select guid, name from vendors
+    ) as b on owner_guid = b.guid
+  left join accounts c on post_txn = c.guid
+  left join accounts d on post_lot = d.guid
+  left join accounts e on post_acc = e.guid;
+```
