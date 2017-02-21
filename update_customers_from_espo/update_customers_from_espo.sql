@@ -17,9 +17,12 @@ drop procedure update_customers_from_espocrm;
 delimiter $$
 create procedure update_customers_from_espocrm()
 begin
+  set session sql_safe_updates = 0;
+
   set @keyword = 'Kundennummer:';
   set @likeKeyword = concat('%', @keyword, '%');
   set @customerIdLength = 7;
+  set @accountType = 'Customer';
 
   create temporary table temp as
     select
@@ -27,7 +30,7 @@ begin
       name as espo_account_name,
       trim(substr(description, locate(@keyword, description) + length(@keyword), @customerIdLength)) as gnucash_customer_id
     from espocrm.account
-    where description like @likeKeyword;
+    where type = @accountType and description like @likeKeyword;
 
   -- customers with references from more than 1 account -> error
   create temporary table temp_messages (message_type varchar(10), message text);
