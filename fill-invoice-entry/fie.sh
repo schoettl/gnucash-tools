@@ -4,12 +4,13 @@
 printUsage() {
     cat <<EOF
 usage:
-  $PROGNAME [-n QUANTITY] [SEARCH_TERM]
+  $PROGNAME [-n QUANTITY] [options] [SEARCH_TERM]
   $PROGNAME -h
 
 options:
   -n QUANTITY
       define the quantity for the invoice entry
+  -a  rely on GnuCash auto-complete when item with same description exists
   -d
       dry-run, do not type and fill in the entry table in GnuCash
   -k
@@ -24,6 +25,8 @@ EOF
 readonly ENV_VAR_NAME=FIE_CSV_FILE
 readonly ARTICLE_DATABASE=$FIE_CSV_FILE
 readonly CSV_SEPARATOR=';'
+
+readonly INCOME_ACCOUNT="01. Betriebliche Erträge:a) Umsatzerlöse:Umsatzerlöse 19% USt"
 
 readonly PROGNAME=$(basename "$0")
 
@@ -44,7 +47,7 @@ xerrorAndExit() {
 # $*: command line arguments = "$@"
 parseCommandLine() {
     declare quantity
-    while getopts "hdn:k" OPTION; do
+    while getopts "hdn:ka" OPTION; do
          case $OPTION in
          n)
              quantity=$OPTARG
@@ -54,6 +57,8 @@ parseCommandLine() {
          d)  declare -rg DRY_RUN=1
              ;;
          k)  declare -rg SWITCH_KEYBOARD_LAYOUT=1
+             ;;
+         a)  declare -rg RELY_ON_AUTOCOMPLETE=1
              ;;
          h)
              printUsage
@@ -83,16 +88,21 @@ typeInvoiceEntry() {
         sleep 0.05
         xdotool type "$id - $description"
         xdotool key Tab
-        xdotool type "Auftrag"
-        xdotool key Tab
-        xdotool type "Erträge:Verkauf"
-        sleep 0.05
-        xdotool key Tab
-        xdotool type "$QUANTITY"
-        xdotool key Tab
-        xdotool type "$price"
-        xdotool key Tab
-        # xdotool type "kein rabatt"
+        if [[ -n $RELY_ON_AUTOCOMPLETE ]]; then
+            xdotool type "$QUANTITY"
+        else
+            xdotool type "Auftrag"
+            sleep 0.05
+            xdotool key Tab
+            xdotool type "$INCOME_ACCOUNT"
+            sleep 0.05
+            xdotool key Tab
+            xdotool type "$QUANTITY"
+            xdotool key Tab
+            xdotool type "$price"
+            xdotool key Tab
+            # xdotool type "kein rabatt"
+        fi
 
         # "Steuerbar" kann man blöderweise nicht per Tastatur ansteuern!
         # Folglich kann man "Steuertabelle" auch nicht per Tastatur ansteuern,
