@@ -111,8 +111,10 @@ typeInvoiceEntry() {
         xmessage "would fill in: $id, $description, $QUANTITY, $price"
     fi
 
-    [[ -n $SWITCH_KEYBOARD_LAYOUT ]] \
-        && setxkbmap de neo
+    if [[ -n $SWITCH_KEYBOARD_LAYOUT ]]; then
+        setxkbmap de neo
+        xmodmap ~/.Xmodmap
+    fi
 }
 
 main() {
