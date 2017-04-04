@@ -74,8 +74,8 @@ begin
   select * from temp_messages;
 
   update customers a
-    left join temp t            on a.id = t.gnucash_customer_id collate utf8_general_ci
-    left join espocrm.account b on b.id = t.espo_account_id     collate utf8_general_ci
+    join temp t            on a.id = t.gnucash_customer_id collate utf8_general_ci
+    join espocrm.account b on b.id = t.espo_account_id     collate utf8_general_ci
     set
       a.addr_name  = b.name,
       a.addr_addr1 = b.billing_address_street,
