@@ -30,10 +30,19 @@ begin
       name as espo_account_name,
       trim(substr(description, locate(@keyword, description) + length(@keyword), @customerIdLength)) as gnucash_customer_id
     from espocrm.account
-    where type = @accountType and description like @likeKeyword;
+    where description like @likeKeyword;
 
   -- customers with references from more than 1 account -> error
   create temporary table temp_messages (message_type varchar(10), message text);
+
+  insert into temp_messages
+    select
+      'warning' as type,
+      concat('Reference and account type of EspoCRM account do not match: ',
+        name, ' (', id, ')') as message
+    from espocrm.account
+    where type <> @accountType and description like @likeKeyword;
+
   insert into temp_messages
     select
         'error' as type,
